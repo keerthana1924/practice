@@ -1,11 +1,11 @@
 provider "aws" {
-
+  region = "us-west-2"  # Update with your desired region
 }
 
 resource "aws_db_instance" "rds" {
   identifier              = "my-db-instance"
   allocated_storage       = 20
-  instance_class          = "db.t3.micro" 
+  instance_class          = "db.t3.micro"
   engine                  = "mysql"
   engine_version          = "8.0"
   db_name                 = "mydatabase"
@@ -24,7 +24,7 @@ resource "aws_security_group" "rds_sg" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"]  # For testing only. Adjust for production.
   }
 
   egress {
@@ -37,22 +37,23 @@ resource "aws_security_group" "rds_sg" {
 
 resource "aws_db_subnet_group" "rds_subnet_group" {
   name       = "rds-subnet-group"
-  subnet_ids = ["subnet-054ddafd23a60a87a","subnet-076e7f03bd08d95fb"]
+  subnet_ids = ["subnet-054ddafd23a60a87a", "subnet-076e7f03bd08d95fb"]
 }
 
 resource "null_resource" "db_initializer" {
-  depends_on = [aws_db_instance.my_rds]
+  depends_on = [aws_db_instance.rds]
 
   provisioner "local-exec" {
     command = <<EOT
-mysql -h ${aws_db_instance.my_rds.address} \
-      -u admin \
-      -ppassword123 \
-      -e "source ./mysql.sql"
-EOT
+    mysql -h ${aws_db_instance.rds.address} \
+          -u ${aws_db_instance.rds.username} \
+          -p${aws_db_instance.rds.password} \
+          --port 3306 \
+          -e "source ./mysql.sql"
+    EOT
   }
 
   triggers = {
-    db_instance_id = aws_db_instance.my_rds.id
+    db_instance_id = aws_db_instance.rds.id
   }
 }
