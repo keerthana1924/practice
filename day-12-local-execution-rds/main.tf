@@ -1,5 +1,5 @@
 provider "aws" {
-    
+
 }
 
 resource "aws_db_instance" "rds" {
@@ -45,10 +45,11 @@ resource "null_resource" "db_init" {
 
   provisioner "local-exec" {
     command = <<EOT
-    mysql -h ${aws_db_instance.rds.endpoint} \
-          -u ${aws_db_instance.rds.username} \
-          -p${aws_db_instance.rds.password} \
-          -e "CREATE DATABASE IF NOT EXISTS exampledb;"
+      mysql -h ${aws_db_instance.rds.endpoint} \
+            -u ${aws_db_instance.rds.username} \
+            -p${aws_db_instance.rds.password} \
+            --port 3306 \
+            -e "CREATE DATABASE IF NOT EXISTS exampledb;"
     EOT
   }
 
@@ -56,4 +57,5 @@ resource "null_resource" "db_init" {
     db_endpoint = aws_db_instance.rds.endpoint
   }
 }
+
 
